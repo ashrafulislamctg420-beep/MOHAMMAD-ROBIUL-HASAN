@@ -249,6 +249,24 @@ export default function AdminPanel({
   const [editCourseTagInput, setEditCourseTagInput] = useState("");
   const [editCourseSyllabusInput, setEditCourseSyllabusInput] = useState("");
 
+  const [createImageDrag, setCreateImageDrag] = useState(false);
+  const [editImageDrag, setEditImageDrag] = useState(false);
+
+  const handleImageUpload = (file: File, type: "create" | "edit") => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        if (type === "create") {
+          setCourseCoverImage(reader.result);
+        } else {
+          setEditCourseCoverImage(reader.result);
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   // ==================== NEW: ENROLLED STUDENTS MANAGEMENT STATES ====================
   const [viewingStudentsCourse, setViewingStudentsCourse] = useState<Course | null>(null);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
@@ -1637,15 +1655,59 @@ export default function AdminPanel({
                     </p>
                   </div>
 
-                  {/* Proper visible input option for Cover Image URL */}
+                  {/* Sori Sori Pic Upload (Direct Image File Upload) */}
                   <div className="space-y-1.5 pt-2">
-                    <label className="text-xs font-bold text-slate-700 block">Cover Image URL (কভার ইমেজ যুক্ত করুন)</label>
+                    <label className="text-xs font-black text-rose-700 block flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5" />
+                      Direct Picture Upload (সরাসরি কম্পিউটার বা মোবাইল থেকে ছবি দিন)*
+                    </label>
+                    <div 
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setCreateImageDrag(true);
+                      }}
+                      onDragLeave={() => setCreateImageDrag(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setCreateImageDrag(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          handleImageUpload(e.dataTransfer.files[0], "create");
+                        }
+                      }}
+                      onClick={() => document.getElementById("direct-image-upload-create")?.click()}
+                      className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition duration-150 ${
+                        createImageDrag 
+                          ? "border-rose-500 bg-rose-50/50" 
+                          : "border-slate-200 hover:border-rose-500 hover:bg-rose-50/10 bg-slate-50/20"
+                      }`}
+                    >
+                      <Upload className={`w-6 h-6 mb-1 ${createImageDrag ? "text-rose-500 animate-bounce" : "text-slate-400"}`} />
+                      <span className="text-[11px] font-bold text-slate-700">Click to upload or Drag & Drop image</span>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Supports PNG, JPG, JPEG, WEBP files</p>
+                      
+                      <input 
+                        id="direct-image-upload-create"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleImageUpload(e.target.files[0], "create");
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Proper visible input option for Cover Image URL */}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="text-xs font-bold text-slate-500 block">Or Paste Cover Image URL (অথবা ইমেজের ওয়েবলিংক দিন)</label>
                     <input
                       type="text"
                       value={courseCoverImage}
                       onChange={(e) => setCourseCoverImage(e.target.value)}
                       placeholder="Paste cover image link/URL here (https://...)"
-                      className="w-full px-3.5 py-2.2 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-rose-700 bg-white placeholder-slate-400 font-medium"
+                      className="w-full px-3.5 py-1.8 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-rose-700 bg-white placeholder-slate-400 font-medium"
                     />
                   </div>
 
@@ -2731,9 +2793,9 @@ export default function AdminPanel({
             </div>
 
             <form onSubmit={handleEditCourseSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-1 md:col-span-2">
                 {/* Course Name */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 col-span-1 md:col-span-2">
                   <label className="text-[10px] block font-bold text-slate-400 uppercase tracking-widest font-mono">Course Name</label>
                   <input
                     type="text"
@@ -2744,16 +2806,77 @@ export default function AdminPanel({
                   />
                 </div>
 
-                {/* Course Cover Image URL */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] block font-bold text-slate-400 uppercase tracking-widest font-mono">Cover Image URL</label>
-                  <input
-                    type="text"
-                    required
-                    value={editCourseCoverImage}
-                    onChange={(e) => setEditCourseCoverImage(e.target.value)}
-                    className="w-full px-4 py-2 bg-[#171b2d] rounded-xl border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none"
-                  />
+                {/* Direct Image File Upload Zone and URL Row for edit */}
+                <div className="space-y-1.5 md:col-span-2 grid grid-cols-1 sm:grid-cols-12 gap-3.5 items-end bg-[#15192c]/40 p-3 rounded-2xl border border-slate-800/80">
+                  <div className="sm:col-span-7 space-y-1.5">
+                    <label className="text-[10px] block font-black text-rose-400 uppercase tracking-widest font-mono flex items-center gap-1">
+                      <Upload className="w-3 h-3" />
+                      Direct Picture Upload (সরাসরি পিকচার আপলোড করুন)
+                    </label>
+                    <div 
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setEditImageDrag(true);
+                      }}
+                      onDragLeave={() => setEditImageDrag(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setEditImageDrag(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                          handleImageUpload(e.dataTransfer.files[0], "edit");
+                        }
+                      }}
+                      onClick={() => document.getElementById("direct-image-upload-edit")?.click()}
+                      className={`border border-dashed rounded-xl p-2.5 flex flex-col items-center justify-center text-center cursor-pointer transition ${
+                        editImageDrag 
+                          ? "border-rose-500 bg-rose-500/10" 
+                          : "border-slate-800 hover:border-slate-700 bg-slate-900/50"
+                      }`}
+                    >
+                      <Upload className={`w-4 h-4 mb-0.5 ${editImageDrag ? "text-rose-400 animate-bounce" : "text-slate-500"}`} />
+                      <span className="text-[9.5px] font-bold text-slate-300">Click to upload or Drag-drop</span>
+                      <input 
+                        id="direct-image-upload-edit"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleImageUpload(e.target.files[0], "edit");
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Fallback/Custom URL Input */}
+                    <input
+                      type="text"
+                      value={editCourseCoverImage}
+                      onChange={(e) => setEditCourseCoverImage(e.target.value)}
+                      placeholder="Or paste external image URL (https://...)"
+                      className="w-full px-3 py-1.8 bg-[#171b2d] rounded-lg border border-slate-800 text-[11px] text-white placeholder-slate-600 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Edit Image Preview panel */}
+                  <div className="sm:col-span-5 space-y-1.5">
+                    <label className="text-[10px] block font-bold text-slate-400 uppercase tracking-widest font-mono">Selected Preview</label>
+                    <div className="border border-slate-800/80 rounded-xl p-2 bg-[#0e101b] flex flex-col items-center justify-center h-[96px] text-center overflow-hidden">
+                      {editCourseCoverImage ? (
+                        <div className="w-full h-full flex flex-col justify-between items-center py-0.5">
+                          <img 
+                            src={editCourseCoverImage} 
+                            alt="Course Cover" 
+                            className="max-h-[55px] max-w-full object-contain rounded border border-slate-800"
+                            referrerPolicy="no-referrer"
+                          />
+                          <span className="text-[9px] font-mono text-emerald-400 font-bold block">✓ Ready to Save</span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-600 font-mono text-[9px]">No thumbnail loaded</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Instructor Name - CUSTOM EDIT INPUT TO FIX REPEATED TEACHERS OR REMOVE THEM */}
