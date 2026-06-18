@@ -1,0 +1,6 @@
+{
+  "name": "The Success Academy",
+  "description": "A professional and modern Learning Management System featuring interactive MCQ exams, realistic timers, course catalogs, dynamic results, and student performance dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
